@@ -1,5 +1,6 @@
 import os
 import paramiko
+import time
 
 def establishSshConnection(hostname, username, privateKeyPath, maxRetries=3, retryDelay=5):
     retries = 0
@@ -28,9 +29,9 @@ def listRemoteFiles(remotePath, sftp):
         print(f"Error listing files: {e}")
 
 # Remote machine details
-hostname = '192.168.1.34'
-username = 'astroberry'
-remotePath = '/home/astroberry/git'
+hostname = '192.168.1.28'
+username = 'pi'
+remotePath = '/home/pi/RMS_data/ArchivedFiles'
 
 # Create a Paramiko SSH client
 client = paramiko.SSHClient()
@@ -38,8 +39,12 @@ client.load_system_host_keys()  # Load system host keys
 client.set_missing_host_key_policy(paramiko.AutoAddPolicy())  # Auto-add new hosts
 
 # Connect to the remote machine using your private key
-privateKeyPath = 'C:\\Users\\robst\\.ssh\\id_rsa'
-#privateKeyPath = '/home/astroberry/.ssh/id_ed2559'
+
+# This is the location of the private key when using a windows machine
+# as the host
+# privateKeyPath = 'C:\\Users\\robst\\.ssh\\id_rsa'
+
+privateKeyPath = '/home/pi/.ssh/id_ed25520'
 
 if establishSshConnection(hostname, username, privateKeyPath):
     try:
