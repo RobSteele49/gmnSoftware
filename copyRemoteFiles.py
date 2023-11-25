@@ -2,6 +2,24 @@ import os
 import paramiko
 import time
 
+# Remote machine details
+hostname = '192.168.1.28'
+username = 'pi'
+remotePath = '/home/pi/RMS_data/ArchivedFiles'
+
+# Create a Paramiko SSH client
+client = paramiko.SSHClient()
+client.load_system_host_keys()  # Load system host keys
+client.set_missing_host_key_policy(paramiko.AutoAddPolicy())  # Auto-add new hosts
+
+# Connect to the remote machine using your private key
+
+# This is the location of the private key when using a windows machine
+# as the host
+# privateKeyPath = 'C:\\Users\\robst\\.ssh\\id_rsa'
+
+privateKeyPath = '/home/pi/.ssh/id_ed25520'
+
 def establishSshConnection(hostname, username, privateKeyPath, maxRetries=3, retryDelay=5):
     retries = 0
     while retries < maxRetries:
@@ -28,37 +46,36 @@ def listRemoteFiles(remotePath, sftp):
     except Exception as e:
         print(f"Error listing files: {e}")
 
-# Remote machine details
-hostname = '192.168.1.28'
-username = 'pi'
-remotePath = '/home/pi/RMS_data/ArchivedFiles'
+def main():
+    print ("main")
+    
+    if establishSshConnection(hostname, username, privateKeyPath):
+        try:
+            # Create a transport object for SFTP (Secure File Transfer Protocol)
+            sftp = client.open_sftp()
 
-# Create a Paramiko SSH client
-client = paramiko.SSHClient()
-client.load_system_host_keys()  # Load system host keys
-client.set_missing_host_key_policy(paramiko.AutoAddPolicy())  # Auto-add new hosts
+            # List files in the remote directory
+            listRemoteFiles(remotePath, sftp)
 
-# Connect to the remote machine using your private key
+# get an array of the files in the remotePath directory
 
-# This is the location of the private key when using a windows machine
-# as the host
-# privateKeyPath = 'C:\\Users\\robst\\.ssh\\id_rsa'
+            fileList = sftp.listdir(remotePath)
 
-privateKeyPath = '/home/pi/.ssh/id_ed25520'
+            print (fileList)
 
-if establishSshConnection(hostname, username, privateKeyPath):
-    try:
-        # Create a transport object for SFTP (Secure File Transfer Protocol)
-        sftp = client.open_sftp()
+            for file in fileList:
+                print (file)
 
-        # List files in the remote directory
-        listRemoteFiles(remotePath, sftp)
+        except Exception as e:
+            print(f"Error: {e}")
+        finally:
+            # Close the SFTP session and SSH connection
+            sftp.close()
+            client.close()
+    else:
+        print("Aborting script due to SSH connection issues.")
 
-    except Exception as e:
-        print(f"Error: {e}")
-    finally:
-        # Close the SFTP session and SSH connection
-        sftp.close()
-        client.close()
-else:
-    print("Aborting script due to SSH connection issues.")
+
+if __name__ == "__main__":
+    main()
+
